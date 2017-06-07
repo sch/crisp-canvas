@@ -1,0 +1,13 @@
+{
+  "name": "sol",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Adrian Schaedle <adrian@schaedle.me>",
+  "license": "MIT",
+  "scripts": {
+    "start": "budo index.js --live"
+  },
+  "devDependencies": {
+    "budo": "^10.0.3"
+  }
+}
