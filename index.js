@@ -1,10 +1,17 @@
+var SIDES = {
+  TOP: "TOP",
+  RIGHT: "RIGHT",
+  BOTTOM: "BOTTOM",
+  LEFT: "LEFT",
+};
+
 main(document.body);
 
 function main(parent) {
   var canvas = document.createElement("canvas");
 
   canvas.width = 1000;
-  canvas.height = 750;
+  canvas.height = 1000;
 
   parent.append(canvas);
 
@@ -13,22 +20,45 @@ function main(parent) {
   requestAnimationFrame(draw);
 
   function draw(timestamp) {
-    drawLine(ctx);
+    var start = performance.now();
+    for (var i = 0; i < 500; i++) {
+      drawLine(ctx, randomLine(ctx.canvas));
+    }
+    var end = performance.now();
+    console.log("individual image data time (ms)", end - start);
+
+
+    var lines = []
+    for (var i = 0; i < 500; i++) {
+      lines.push(randomLine(ctx.canvas));
+    }
+    start = performance.now();
+    drawLines(ctx, lines);
+    end = performance.now();
+    console.log("batched time (ms)", end - start);
+
     // requestAnimationFrame(main);
   }
 }
 
 var blue = [100, 100, 100, 255];
 
-function drawLine(context, line) {
+function drawLines(context, lines) {
   var imageData = getImageData(context);
   var drawPixel = setPixel.bind(null, imageData, blue);
 
-  for (var i = 0; i < 500; i++) {
-    var { start, end } = randomLine(context.canvas);
+  lines.forEach(function ({ start, end }) {
     bresenhamPoints(start.x, start.y, end.x, end.y).forEach(drawPixel);
-  }
+  });
 
+  putImageData(context, imageData);
+}
+
+function drawLine(context, line) {
+  var imageData = getImageData(context);
+  var drawPixel = setPixel.bind(null, imageData, blue);
+  var { start, end } = line
+  bresenhamPoints(start.x, start.y, end.x, end.y).forEach(drawPixel);
   putImageData(context, imageData);
 }
 
@@ -64,19 +94,19 @@ function randomLine(dimensions, length) {
 
 function randomPointAlongEdge(dimensions) {
   switch (randomSide()) {
-    case "TOP":
+    case SIDES.TOP:
       return { x: randomInteger(dimensions.width), y: 0 };
-    case "RIGHT":
+    case SIDES.RIGHT:
       return { x: dimensions.width, y: randomInteger(dimensions.height) };
-    case "BOTTOM":
+    case SIDES.BOTTOM:
       return { x: randomInteger(dimensions.width), y: dimensions.height };
-    case "LEFT":
+    case SIDES.LEFT:
       return { x: 0, y: randomInteger(dimensions.height) };
   }
 }
 
 function randomSide() {
-  return ["TOP", "RIGHT", "BOTTOM", "LEFT"][Math.floor(Math.random() * 4)];
+  return Object.keys(SIDES)[Math.floor(Math.random() * 4)];
 }
 
 function randomPoint(dimensions) {
