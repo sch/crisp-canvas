@@ -5,7 +5,7 @@ algorithm, for pixel-precision crispness.
 
 #### Usage
 
-```
+```js
 var crisp = require("crisp-canvas");
 var canvas = getElementById("canvas-id");
 var context = canvas.getContext("2d");
