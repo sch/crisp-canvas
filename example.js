@@ -4,12 +4,12 @@ var SIDES = {
   TOP: "TOP",
   RIGHT: "RIGHT",
   BOTTOM: "BOTTOM",
-  LEFT: "LEFT",
+  LEFT: "LEFT"
 };
 
 var canvas = document.createElement("canvas");
-canvas.width = window.innerWidth
-canvas.height = window.innerHeight
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 document.body.style.margin = 0;
 document.body.style.overflow = "hidden";
 document.body.append(canvas);
@@ -19,7 +19,7 @@ var ctx = canvas.getContext("2d");
 requestAnimationFrame(draw);
 
 function draw(timestamp) {
-  benchmark("batched time", function () {
+  benchmark("batched time", function() {
     var lines = [];
     for (var i = 0; i < 500; i++) {
       lines.push(randomLine(ctx.canvas));

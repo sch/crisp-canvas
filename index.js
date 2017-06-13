@@ -7,7 +7,7 @@ module.exports = {
 function drawLines(context, lines) {
   var imageData = getImageData(context);
 
-  lines.forEach(function (line) {
+  lines.forEach(function(line) {
     drawLine(imageData, line);
   });
 
@@ -17,7 +17,7 @@ function drawLines(context, lines) {
 function drawLine(imageData, line) {
   const { start, end, color } = line;
 
-  bresenhamPoints(start.x, start.y, end.x, end.y).forEach(function (point) {
+  bresenhamPoints(start.x, start.y, end.x, end.y).forEach(function(point) {
     setPixel(imageData, color, point);
   });
 
