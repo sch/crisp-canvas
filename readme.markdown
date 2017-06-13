@@ -1,7 +1,6 @@
-# crisp-canvas
+<p align="center"><img src="https://raw.githubusercontent.com/sch/crisp-canvas/master/example.png"/></p>
 
-<center><img
-src="https://raw.githubusercontent.com/sch/crisp-canvas/master/example.png"/></center>
+# crisp-canvas
 
 A module for quickly drawing lines to a canvas element using bresenham's
 algorithm, for pixel-precision crispness.
