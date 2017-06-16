@@ -1,3 +1,4 @@
+var querystring = require("querystring");
 var { drawLine, drawLines } = require(".");
 
 var SIDES = {
@@ -8,8 +9,8 @@ var SIDES = {
 };
 
 var GRAY = [100, 100, 100, 255];
-var LIGHT_GRAY = [150, 150, 150, 255];
-var LIGHTER_GRAY = [200, 200, 200, 255];
+var LIGHT_GRAY = [130, 130, 130, 255];
+var LIGHTER_GRAY = [160, 160, 160, 255];
 
 var RED = [255, 0, 0, 255];
 var GREEN = [0, 255, 0, 255];
@@ -20,15 +21,18 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 document.body.style.margin = 0;
 document.body.style.overflow = "hidden";
+document.body.style.position = "relative";
 document.body.append(canvas);
+document.body.append(createControls());
 
 var ctx = canvas.getContext("2d");
 
-switch (route(window.location)) {
+var options = querystring.parse(window.location.search.slice(1));
+switch (options.image) {
   case "molnar":
-    return molnar(ctx);
+    return molnar(ctx, options);
   case "roses":
-    return roses(ctx);
+    return roses(ctx, options);
   default:
     return draw();
 }
@@ -90,26 +94,12 @@ function benchmark(message, fn) {
   console.log(message, end - start, "(ms)");
 }
 
-function route(location) {
-  return location.search.split("=")[1] || null;
-}
-
 function molnar(context) {
-  var division = 100;
-  const { width, height } = context.canvas;
-  const columnCount = Math.floor(width / division);
-  const rowCount = Math.floor(height / division);
-  let allLines = [];
-  for (var i = 0; i < columnCount; i++) {
-    for (var j = 0; j < rowCount; j++) {
-      allLines = allLines.concat(
-        transposeLines(veraLines(division, 20), {
-          x: i * division,
-          y: j * division
-        })
-      );
-    }
-  }
+  var size = options.size || 100;
+  var iterations = options.iterations || 30;
+  let allLines = grid(context.canvas, size, function() {
+    return veraLines(size, iterations)
+  });
   drawLines(
     context,
     allLines.map(line =>
@@ -118,10 +108,11 @@ function molnar(context) {
   );
 }
 
-function roses(context) {
-  var size = 100;
+function roses(context, options) {
+  var size = options.size || 100;
+  var iterations = options.iterations || 30;
   var allLines = grid(context.canvas, size, function () {
-    return rose(size, 30);
+    return rose(size, iterations);
   });
   drawLines(context, allLines);
 }
@@ -230,4 +221,27 @@ function transposeLines(lines, { x, y }) {
 
 function choice(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function createSlider(options) {
+  var element = document.createElement("input");
+  element.type = "range";
+  element.min = 1;
+  element.max = 20;
+  element.value = 5;
+  element.style.margin = "20px";
+  element.style.display = "block";
+  return element;
+}
+
+function createControls() {
+  var element = document.createElement("div");
+
+  element.append(createSlider());
+
+  element.style.backgroundColor = "white";
+  element.style.position = "absolute";
+  element.style.bottom = "20px";
+  element.style.left = "20px";
+  return element;
 }
