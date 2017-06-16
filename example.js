@@ -1,5 +1,6 @@
 var querystring = require("querystring");
 var { drawLine, drawLines } = require(".");
+var eventStream = require("@most/dom-event");
 
 var SIDES = {
   TOP: "TOP",
@@ -23,27 +24,43 @@ document.body.style.margin = 0;
 document.body.style.overflow = "hidden";
 document.body.style.position = "relative";
 document.body.append(canvas);
-document.body.append(createControls());
 
-var ctx = canvas.getContext("2d");
+document.body.append(createControls({
+  size: {
+    type: "slider",
+    name: "size",
+    default: 50,
+    min: 5,
+    max: 100,
+  },
+  iterations: {
+    type: "slider",
+    name: "iterations",
+    default: 30,
+    min: 4,
+    max: 100,
+  }
+}));
+
+var context = canvas.getContext("2d");
 
 var options = querystring.parse(window.location.search.slice(1));
 switch (options.image) {
   case "molnar":
-    return molnar(ctx, options);
+    return molnar(context, options);
   case "roses":
-    return roses(ctx, options);
+    return roses(context, options);
   default:
-    return draw();
+    return draw(context, options);
 }
 
-function draw(timestamp) {
+function draw(context, options) {
   benchmark("batched time", function() {
     var lines = [];
     for (var i = 0; i < 500; i++) {
-      lines.push(randomLine(ctx.canvas));
+      lines.push(randomLine(context.canvas));
     }
-    drawLines(ctx, lines);
+    drawLines(context, lines);
   });
 }
 
@@ -98,7 +115,7 @@ function molnar(context) {
   var size = options.size || 100;
   var iterations = options.iterations || 30;
   let allLines = grid(context.canvas, size, function() {
-    return veraLines(size, iterations)
+    return veraLines(size, iterations);
   });
   drawLines(
     context,
@@ -109,9 +126,9 @@ function molnar(context) {
 }
 
 function roses(context, options) {
-  var size = options.size || 100;
-  var iterations = options.iterations || 30;
-  var allLines = grid(context.canvas, size, function () {
+  var size = parseInt(options.size) || 100;
+  var iterations = parseInt(options.iterations) || 30;
+  var allLines = grid(context.canvas, size, function() {
     return rose(size, iterations);
   });
   drawLines(context, allLines);
@@ -146,23 +163,30 @@ function veraLines(widthAndHeight, count) {
 function rose(size, count) {
   var points = [];
 
+  var bounds = [
+    { x: 0, y: 0 }, // top-left
+    { x: size, y: 0 }, // top-right
+    { x: size, y: size }, // bottom-right
+    { x: 0, y: size } // bottom-left
+  ];
+
   for (var i = 0; i < count; i++) {
-    var mod = i % 4;
-    var variance = randomPoint({ width: i, height: i });
-    var point = variance;
-
-    if (mod === 1) {
-      point = { x: size - variance.x, y: variance.y };
-    } else if (mod === 2) {
-      point = { x: size - variance.x, y: size - variance.y };
-    } else if (mod === 3) {
-      point = { x: variance.x, y: size - variance.y };
-    }
-
-    points.push(point);
+    var point = bounds[i % 4];
+    points.push(drift(point, i));
   }
 
   return paths(points).map(line => colorize(line, GRAY));
+}
+
+function drift(point, radius) {
+  return {
+    x: point.x + randomSign(randomInteger(radius)),
+    y: point.y + randomSign(randomInteger(radius))
+  };
+}
+
+function randomSign(num) {
+  return Math.random() > 0.5 ? num : num * -1;
 }
 
 function randomPoint(dimensions) {
@@ -226,22 +250,93 @@ function choice(arr) {
 function createSlider(options) {
   var element = document.createElement("input");
   element.type = "range";
-  element.min = 1;
-  element.max = 20;
-  element.value = 5;
+
   element.style.margin = "20px";
   element.style.display = "block";
+
+  if (options) {
+    if (options.min) element.min = options.min;
+    if (options.max) element.max = options.max;
+    if (options.default) element.value = options.default;
+    if (options.handler) element.addEventListener("change", options.handler);
+  }
+
   return element;
 }
 
-function createControls() {
+function createInput(options) {
   var element = document.createElement("div");
 
-  element.append(createSlider());
+  if (options.type === "slider") {
+    var input = createSlider(options)
+  }
+
+  element.append(options.name);
+  element.append(input);
+  element.append(options.default);
+
+  element.style.display = "flex";
+  element.style.alignItems = "center";
+  element.style.marginLeft = "20px";
+  element.style.paddingRight = "20px";
+
+  return element;
+}
+
+function createControls(controls) {
+  var element = document.createElement("div");
+  var hideregion = createHideRegion();
 
   element.style.backgroundColor = "white";
+  element.style.fontFamily = "-apple-system, sans-serif";
+  element.style.fontWeight = "500";
+  element.style.color = "#444";
   element.style.position = "absolute";
   element.style.bottom = "20px";
   element.style.left = "20px";
+  element.style.display = "flex";
+  element.style.transition = "opacity 0.3s ease-in-out";
+  element.style.borderRadius = "3px";
+
+  element.append(hideregion);
+
+  var sizeInput = createInput(controls.size);
+  var iterationsInput = createInput(controls.iterations);
+  var sizeChanges = eventValues(eventStream.change(sizeInput));
+  var iterationChanges = eventValues(eventStream.change(iterationsInput));
+
+  sizeChanges.observe(function(value) {
+    sizeInput.lastChild.nodeValue = value;
+  });
+
+  iterationChanges.observe(function(value) {
+    iterationsInput.lastChild.nodeValue = value;
+  });
+
+  element.append(sizeInput);
+  element.append(iterationsInput);
+
+  hideregion.addEventListener("click", function() {
+    element.style.opacity = 0;
+  });
+  element.addEventListener("mouseleave", function() {
+    element.style.opacity = 1;
+  });
+
+  sizeInput.style.borderRight = "solid 1px #EEE";
+
+  return element;
+}
+
+function eventValues(eventStream) {
+  return eventStream.map(event => parseInt(event.target.value, 10));
+}
+
+function createHideRegion() {
+  var element = document.createElement("div");
+  element.textContent = "hide";
+  element.style.cursor = "pointer";
+  element.style.padding = "20px";
+  element.style.borderRight = "solid 1px #EEE";
   return element;
 }
