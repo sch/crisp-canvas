@@ -25,26 +25,29 @@ document.body.style.overflow = "hidden";
 document.body.style.position = "relative";
 document.body.append(canvas);
 
-document.body.append(createControls({
-  size: {
-    type: "slider",
-    name: "size",
-    default: 50,
-    min: 5,
-    max: 100,
-  },
-  iterations: {
-    type: "slider",
-    name: "iterations",
-    default: 30,
-    min: 4,
-    max: 100,
-  }
-}));
+var options = querystring.parse(window.location.search.slice(1));
+
+if (Object.keys(options).length > 1) {
+  document.body.append(createControls({
+    size: {
+      type: "slider",
+      name: "size",
+      default: 50,
+      min: 5,
+      max: 100,
+    },
+    iterations: {
+      type: "slider",
+      name: "iterations",
+      default: 30,
+      min: 4,
+      max: 100,
+    }
+  }));
+}
 
 var context = canvas.getContext("2d");
 
-var options = querystring.parse(window.location.search.slice(1));
 switch (options.image) {
   case "molnar":
     return molnar(context, options);
