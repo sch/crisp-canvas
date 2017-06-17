@@ -48,14 +48,13 @@ if (Object.keys(options).length > 1) {
 
 var context = canvas.getContext("2d");
 
-switch (options.image) {
-  case "molnar":
-    return molnar(context, options);
-  case "roses":
-    return roses(context, options);
-  default:
-    return draw(context, options);
-}
+var drawFunction = {
+  molnar: molnar,
+  roses: roses,
+  unimaginable: unimaginable,
+}[options.image] || draw
+
+drawFunction(context, options);
 
 function draw(context, options) {
   benchmark("batched time", function() {
@@ -342,4 +341,29 @@ function createHideRegion() {
   element.style.padding = "20px";
   element.style.borderRight = "solid 1px #EEE";
   return element;
+}
+
+function unimaginable(context, options) {
+  var height = parseInt(options.height) || 30;
+  var spacing = parseInt(options.spacing) || 10;
+  var density = parseInt(options.density) || 30; // number of items per line
+  var maxWidth = Math.floor(context.canvas.width / density) * 1.5; // the maximum width of a trapezoid
+  var rowCount = Math.floor(context.canvas.height / (height + spacing));
+  var lines = [];
+
+  for (var rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+    for (var columnIndex = 0; columnIndex < density; columnIndex++) {
+      var points = [];
+      var startX = randomInteger(20) + (Math.floor(context.canvas.width / density) * columnIndex);
+      var yOffset = ((height + spacing) * rowIndex) + spacing;
+      points.push({ x: startX, y: yOffset });
+      points.push({ x: startX + randomInteger(maxWidth), y: yOffset });
+      points.push({ x: startX + randomInteger(maxWidth), y: yOffset + height });
+      points.push({ x: startX + randomInteger(maxWidth), y: yOffset + height });
+      points.push({ x: startX, y: yOffset });
+      lines = lines.concat(paths(points));
+    }
+  }
+
+  drawLines(context, lines.map(line => colorize(line, GRAY)));
 }
