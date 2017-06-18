@@ -36,33 +36,30 @@ var drawFunction = {
   unimaginable: unimaginable,
 }[options.image] || draw
 
-drawFunction(context, options);
+var controls = controller.create({
+  size: {
+    type: "slider",
+    name: "size",
+    default: 50,
+    min: 5,
+    max: 200,
+  },
+  iterations: {
+    type: "slider",
+    name: "number of iterations",
+    default: 30,
+    min: 4,
+    max: 50,
+  }
+});
+
+controls.changes.observe(function (options) {
+  clear(context);
+  drawFunction(context, options);
+});
 
 if (Object.keys(options).length > 1) {
-  var controls = controller.create({
-    size: {
-      type: "slider",
-      name: "size",
-      default: 50,
-      min: 5,
-      max: 100,
-    },
-    iterations: {
-      type: "slider",
-      name: "iterations",
-      default: 30,
-      min: 4,
-      max: 100,
-    }
-  });
-
   document.body.append(controls.element);
-
-  controls.changes.observe(function (options) {
-    console.log("hark! controls", options);
-    clear(context);
-    drawFunction(context, options);
-  });
 }
 
 function draw(context, options) {

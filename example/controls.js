@@ -60,23 +60,29 @@ function createControls(controls) {
 
   var changeStreams = {};
 
-  for (var controlKey in controls) {
+  Object.keys(controls).forEach(function (controlKey, index) {
     var settings = controls[controlKey];
     var inputElement = createInput(settings);
-    inputElement.style.borderRight = "solid 1px #EEE";
-    var values = eventValues(eventStream.change(inputElement)).startWith(
-      settings.default
-    );
+
+    if (index < Object.keys(controls).length - 1) {
+      inputElement.style.borderRight = "solid 1px #EEE";
+    }
+
+    var values = eventValues(eventStream.change(inputElement));
+    values = values.startWith(settings.default);
+
     values.observe(function(value) {
       inputElement.lastChild.nodeValue = value;
     });
+
     element.append(inputElement);
     changeStreams[controlKey] = values;
-  }
+  });
 
   hideregion.addEventListener("click", function() {
     element.style.opacity = 0;
   });
+
   element.addEventListener("mouseleave", function() {
     element.style.opacity = 1;
   });
