@@ -1,6 +1,7 @@
 var querystring = require("querystring");
-var { drawLine, drawLines } = require(".");
-var eventStream = require("@most/dom-event");
+
+var { drawLine, drawLines } = require("..");
+var controller = require("./controls");
 
 var SIDES = {
   TOP: "TOP",
@@ -28,7 +29,7 @@ document.body.append(canvas);
 var options = querystring.parse(window.location.search.slice(1));
 
 if (Object.keys(options).length > 1) {
-  document.body.append(createControls({
+  var controls = controller.create({
     size: {
       type: "slider",
       name: "size",
@@ -43,7 +44,8 @@ if (Object.keys(options).length > 1) {
       min: 4,
       max: 100,
     }
-  }));
+  });
+  document.body.append(controls.element);
 }
 
 var context = canvas.getContext("2d");
@@ -247,100 +249,6 @@ function transposeLines(lines, { x, y }) {
 
 function choice(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function createSlider(options) {
-  var element = document.createElement("input");
-  element.type = "range";
-
-  element.style.margin = "20px";
-  element.style.display = "block";
-
-  if (options) {
-    if (options.min) element.min = options.min;
-    if (options.max) element.max = options.max;
-    if (options.default) element.value = options.default;
-    if (options.handler) element.addEventListener("change", options.handler);
-  }
-
-  return element;
-}
-
-function createInput(options) {
-  var element = document.createElement("div");
-
-  if (options.type === "slider") {
-    var input = createSlider(options)
-  }
-
-  element.append(options.name);
-  element.append(input);
-  element.append(options.default);
-
-  element.style.display = "flex";
-  element.style.alignItems = "center";
-  element.style.marginLeft = "20px";
-  element.style.paddingRight = "20px";
-
-  return element;
-}
-
-function createControls(controls) {
-  var element = document.createElement("div");
-  var hideregion = createHideRegion();
-
-  element.style.backgroundColor = "white";
-  element.style.fontFamily = "-apple-system, sans-serif";
-  element.style.fontWeight = "500";
-  element.style.color = "#444";
-  element.style.position = "absolute";
-  element.style.bottom = "20px";
-  element.style.left = "20px";
-  element.style.display = "flex";
-  element.style.transition = "opacity 0.3s ease-in-out";
-  element.style.borderRadius = "3px";
-
-  element.append(hideregion);
-
-  var sizeInput = createInput(controls.size);
-  var iterationsInput = createInput(controls.iterations);
-  var sizeChanges = eventValues(eventStream.change(sizeInput));
-  var iterationChanges = eventValues(eventStream.change(iterationsInput));
-
-  sizeChanges.observe(function(value) {
-    sizeInput.lastChild.nodeValue = value;
-  });
-
-  iterationChanges.observe(function(value) {
-    iterationsInput.lastChild.nodeValue = value;
-  });
-
-  element.append(sizeInput);
-  element.append(iterationsInput);
-
-  hideregion.addEventListener("click", function() {
-    element.style.opacity = 0;
-  });
-  element.addEventListener("mouseleave", function() {
-    element.style.opacity = 1;
-  });
-
-  sizeInput.style.borderRight = "solid 1px #EEE";
-
-  return element;
-}
-
-function eventValues(eventStream) {
-  return eventStream.map(event => parseInt(event.target.value, 10));
-}
-
-function createHideRegion() {
-  var element = document.createElement("div");
-  element.textContent = "hide";
-  element.style.cursor = "pointer";
-  element.style.padding = "20px";
-  element.style.borderRight = "solid 1px #EEE";
-  return element;
 }
 
 function unimaginable(context, options) {

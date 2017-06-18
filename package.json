@@ -5,7 +5,7 @@
   "author": "Adrian Schaedle <adrian@schaedle.me>",
   "license": "MIT",
   "scripts": {
-    "start": "budo example.js --live"
+    "start": "budo example/index.js --live"
   },
   "devDependencies": {
     "budo": "^10.0.3"
