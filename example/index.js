@@ -28,6 +28,16 @@ document.body.append(canvas);
 
 var options = querystring.parse(window.location.search.slice(1));
 
+var context = canvas.getContext("2d");
+
+var drawFunction = {
+  molnar: molnar,
+  roses: roses,
+  unimaginable: unimaginable,
+}[options.image] || draw
+
+drawFunction(context, options);
+
 if (Object.keys(options).length > 1) {
   var controls = controller.create({
     size: {
@@ -45,18 +55,15 @@ if (Object.keys(options).length > 1) {
       max: 100,
     }
   });
+
   document.body.append(controls.element);
+
+  controls.changes.observe(function (options) {
+    console.log("hark! controls", options);
+    clear(context);
+    drawFunction(context, options);
+  });
 }
-
-var context = canvas.getContext("2d");
-
-var drawFunction = {
-  molnar: molnar,
-  roses: roses,
-  unimaginable: unimaginable,
-}[options.image] || draw
-
-drawFunction(context, options);
 
 function draw(context, options) {
   benchmark("batched time", function() {
@@ -115,7 +122,7 @@ function benchmark(message, fn) {
   console.log(message, end - start, "(ms)");
 }
 
-function molnar(context) {
+function molnar(context, options = {}) {
   var size = options.size || 100;
   var iterations = options.iterations || 30;
   let allLines = grid(context.canvas, size, function() {

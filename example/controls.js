@@ -1,4 +1,4 @@
-var most = require("most");
+var mergeObject = require("most-combineobj").combineObj;
 var eventStream = require("@most/dom-event");
 
 module.exports = {
@@ -26,7 +26,7 @@ function createInput(options) {
   var element = document.createElement("div");
 
   if (options.type === "slider") {
-    var input = createSlider(options)
+    var input = createSlider(options);
   }
 
   element.append(options.name);
@@ -58,29 +58,21 @@ function createControls(controls) {
 
   element.append(hideregion);
 
-  var sizeInput = createInput(controls.size);
-  var iterationsInput = createInput(controls.iterations);
-  var sizeChanges = eventValues(eventStream.change(sizeInput));
-  var iterationChanges = eventValues(eventStream.change(iterationsInput));
+  var changeStreams = {};
 
-  // sizeChanges.observe(function(value) {
-  //   sizeInput.lastChild.nodeValue = value;
-  // });
-
-  // iterationChanges.observe(function(value) {
-  //   iterationsInput.lastChild.nodeValue = value;
-  // });
-
-  var allChanges = most.combineArray(function (first, second) {
-    return [first, second];
-  }, [sizeChanges, iterationChanges]);
-
-  allChanges.observe(function(value) {
-    console.log("combined Changes", value);
-  });
-
-  element.append(sizeInput);
-  element.append(iterationsInput);
+  for (var controlKey in controls) {
+    var settings = controls[controlKey];
+    var inputElement = createInput(settings);
+    inputElement.style.borderRight = "solid 1px #EEE";
+    var values = eventValues(eventStream.change(inputElement)).startWith(
+      settings.default
+    );
+    values.observe(function(value) {
+      inputElement.lastChild.nodeValue = value;
+    });
+    element.append(inputElement);
+    changeStreams[controlKey] = values;
+  }
 
   hideregion.addEventListener("click", function() {
     element.style.opacity = 0;
@@ -89,19 +81,9 @@ function createControls(controls) {
     element.style.opacity = 1;
   });
 
-  sizeInput.style.borderRight = "solid 1px #EEE";
+  var changes = mergeObject(changeStreams);
 
-  return {
-    element,
-    changes: mergeObject({
-      size: sizeChanges,
-      iterations: iterationChanges,
-    })
-  };
-}
-
-function mergeObject() {
-return {}
+  return { element, changes };
 }
 
 function eventValues(eventStream) {

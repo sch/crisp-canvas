@@ -1349,7 +1349,13 @@ module-deps@^4.0.8:
     through2 "^2.0.0"
     xtend "^4.0.0"
 
-most@^1.4.1:
+most-combineobj@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/most-combineobj/-/most-combineobj-1.0.0.tgz#e7f85e9766daa76692452463f263d818743a3580"
+  dependencies:
+    most "^1.1.0"
+
+most@^1.1.0, most@^1.4.1:
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/most/-/most-1.4.1.tgz#b513b5fb683bd59d6b1dcf8741503e62f072b291"
   dependencies:
