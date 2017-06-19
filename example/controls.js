@@ -5,42 +5,6 @@ module.exports = {
   create: createControls
 };
 
-function createSlider(options) {
-  var element = document.createElement("input");
-  element.type = "range";
-
-  element.style.margin = "20px";
-  element.style.display = "block";
-
-  if (options) {
-    if (options.min) element.min = options.min;
-    if (options.max) element.max = options.max;
-    if (options.default) element.value = options.default;
-    if (options.handler) element.addEventListener("change", options.handler);
-  }
-
-  return element;
-}
-
-function createInput(options) {
-  var element = document.createElement("div");
-
-  if (options.type === "slider") {
-    var input = createSlider(options);
-  }
-
-  element.append(options.name);
-  element.append(input);
-  element.append(options.default);
-
-  element.style.display = "flex";
-  element.style.alignItems = "center";
-  element.style.marginLeft = "20px";
-  element.style.paddingRight = "20px";
-
-  return element;
-}
-
 function createControls(controls) {
   var element = document.createElement("div");
   var hideregion = createHideRegion();
@@ -62,6 +26,10 @@ function createControls(controls) {
 
   Object.keys(controls).forEach(function (controlKey, index) {
     var settings = controls[controlKey];
+    if (!("default" in settings)) {
+      throw new Error("Parameter " + controlKey + " must supply a default value");
+    }
+
     var inputElement = createInput(settings);
 
     if (index < Object.keys(controls).length - 1) {
@@ -90,6 +58,46 @@ function createControls(controls) {
   var changes = mergeObject(changeStreams);
 
   return { element, changes };
+}
+
+function createSlider(options) {
+  var element = document.createElement("input");
+  element.type = "range";
+
+  element.style.margin = "20px";
+  element.style.display = "block";
+
+  if (options) {
+    if (options.min) element.min = options.min;
+    if (options.max) element.max = options.max;
+    if (options.default) element.value = options.default;
+    if (options.handler) element.addEventListener("change", options.handler);
+  }
+
+  return element;
+}
+
+function createInput(options) {
+  var element = document.createElement("div");
+  var input = null;
+
+  if (options.type === "slider" || options.type === "numeric") {
+    input = createSlider(options);
+  }
+
+  if (options.name) element.append(options.name);
+  if (options.displayName) element.append(options.displayName);
+
+  if (input) element.append(input);
+
+  element.append(options.default);
+
+  element.style.display = "flex";
+  element.style.alignItems = "center";
+  element.style.marginLeft = "20px";
+  element.style.paddingRight = "20px";
+
+  return element;
 }
 
 function eventValues(eventStream) {
