@@ -1,4 +1,5 @@
 var { drawLine, drawLines } = require("..");
+var random = require("./random");
 
 var GRAY = [100, 100, 100, 255];
 var LIGHT_GRAY = [130, 130, 130, 255];
@@ -31,7 +32,7 @@ function draw(context, options = {}) {
   });
   drawLines(
     context,
-    allLines.map(line => colorize(line, choice([GRAY, LIGHT_GRAY])))
+    allLines.map(line => colorize(line, random.choice([GRAY, LIGHT_GRAY])))
   );
 }
 
@@ -56,16 +57,9 @@ function veraLines(widthAndHeight, count) {
   var dimensions = { width: widthAndHeight, height: widthAndHeight };
   var points = [];
   for (var i = 0; i <= count; i++) {
-    points.push(randomPoint(dimensions));
+    points.push(random.point(dimensions));
   }
   return paths(points);
-}
-
-function randomPoint(dimensions) {
-  return {
-    x: randomInteger(dimensions.width),
-    y: randomInteger(dimensions.height)
-  };
 }
 
 function colorize(line, color) {
@@ -87,10 +81,6 @@ function transposeLines(lines, { x, y }) {
       color: line.color
     };
   });
-}
-
-function randomInteger(max) {
-  return Math.floor(Math.random() * max);
 }
 
 // given a list of points, return line objects representing the continuous path
@@ -117,8 +107,4 @@ function paths(points, lines = []) {
 
 function last(arr) {
   return arr[arr.length - 1];
-}
-
-function choice(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
 }

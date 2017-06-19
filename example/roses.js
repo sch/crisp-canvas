@@ -1,4 +1,5 @@
 var { drawLine, drawLines } = require("..");
+var random = require("./random");
 
 var GRAY = [100, 100, 100, 255];
 
@@ -50,13 +51,9 @@ function rose(size, count) {
 
 function drift(point, radius) {
   return {
-    x: point.x + randomSign(randomInteger(radius)),
-    y: point.y + randomSign(randomInteger(radius))
+    x: point.x + random.sign(random.integer(radius)),
+    y: point.y + random.sign(random.integer(radius))
   };
-}
-
-function randomSign(num) {
-  return Math.random() > 0.5 ? num : num * -1;
 }
 
 function colorize(line, color) {
@@ -95,10 +92,6 @@ function transposeLines(lines, { x, y }) {
       color: line.color
     };
   });
-}
-
-function randomInteger(max) {
-  return Math.floor(Math.random() * max);
 }
 
 // given a list of points, return line objects representing the continuous path

@@ -1,4 +1,5 @@
 var { drawLine, drawLines } = require("..");
+var random = require("./random");
 
 var GRAY = [100, 100, 100, 255];
 
@@ -22,23 +23,19 @@ function draw(context, options) {
     for (var columnIndex = 0; columnIndex < density; columnIndex++) {
       var points = [];
       var startX =
-        randomInteger(20) +
+        random.integer(20) +
         Math.floor(context.canvas.width / density) * columnIndex;
       var yOffset = (height + spacing) * rowIndex + spacing;
       points.push({ x: startX, y: yOffset });
-      points.push({ x: startX + randomInteger(maxWidth), y: yOffset });
-      points.push({ x: startX + randomInteger(maxWidth), y: yOffset + height });
-      points.push({ x: startX + randomInteger(maxWidth), y: yOffset + height });
+      points.push({ x: startX + random.integer(maxWidth), y: yOffset });
+      points.push({ x: startX + random.integer(maxWidth), y: yOffset + height });
+      points.push({ x: startX + random.integer(maxWidth), y: yOffset + height });
       points.push({ x: startX, y: yOffset });
       lines = lines.concat(paths(points));
     }
   }
 
   drawLines(context, lines.map(line => colorize(line, GRAY)));
-}
-
-function randomInteger(max) {
-  return Math.floor(Math.random() * max);
 }
 
 // given a list of points, return line objects representing the continuous path
